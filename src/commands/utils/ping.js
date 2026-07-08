@@ -1,5 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js")
 
+
+// all servers (prod)
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ping")

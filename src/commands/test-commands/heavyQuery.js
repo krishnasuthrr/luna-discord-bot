@@ -5,6 +5,7 @@ const { SlashCommandBuilder } = require("discord.js");
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 module.exports = {
+  guildOnly: true, // specific guild (dev)
   data: new SlashCommandBuilder()
     .setName("heavyquery")
     .setDescription("Simulates a long-running database query."),
