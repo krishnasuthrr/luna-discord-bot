@@ -3,7 +3,9 @@ require("dotenv").config();
 const fs = require("node:fs");
 const path = require("node:path");
 
-const commands = [];
+const guildCommands = [];
+const globalCommands = [];
+
 // Grab all the command folders from the commands directory you created earlier
 const foldersPath = path.join(__dirname, "src", "commands");
 const commandFolders = fs.readdirSync(foldersPath);
@@ -19,7 +21,12 @@ for (const folder of commandFolders) {
     const filePath = path.join(commandsPath, file);
     const command = require(filePath);
     if ("data" in command && "execute" in command) {
-      commands.push(command.data.toJSON());
+      // commands.push(command.data.toJSON()); // convert command data into JSON for sending it to discord API
+      if (command.guildOnly) {
+        guildCommands.push(command.data.toJSON())
+      } else {
+        globalCommands.push(command.data.toJSON())
+      }
     } else {
       console.log(
         `[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`,
@@ -33,22 +40,31 @@ const rest = new REST().setToken(process.env.TOKEN);
 (async () => {
   try {
     console.log(
-      `Started refreshing ${commands.length} application (/) commands.`,
+      `Deploying ${globalCommands.length} global and ${guildCommands.length} guild commands...`,
     );
 
-    // Register to a specific guild for testing, or globally when no guild is provided
-    const data = await rest.put(
-      process.env.GUILD_ID
-        ? Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID)
-        : Routes.applicationCommands(process.env.CLIENT_ID),
-      { body: commands },
-    );
+    // Deploy Guild Commands (if any exist in the array)
+    if (guildCommands.length > 0 && process.env.GUILD_ID) {
+      console.log("Refreshing guild-specific commands...");
+      await rest.put(
+        Routes.applicationGuildCommands(
+          process.env.CLIENT_ID,
+          process.env.GUILD_ID,
+        ),
+        { body: guildCommands },
+      );
+    }
 
-    console.log(
-      `Successfully reloaded ${data.length} application (/) commands.`,
-    );
+    // Deploy Global Commands (if any exist in the array)
+    if (globalCommands.length > 0) {
+      console.log("Refreshing global commands...");
+      await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
+        body: globalCommands,
+      });
+    }
+
+    console.log(`Successfully reloaded all application commands.`);
   } catch (error) {
-    // And of course, make sure you catch and log any errors!
-    console.error(error);
+    console.error("Failed to deploy commands: ", error);
   }
 })();
