@@ -1,5 +1,5 @@
 // commands/utility/heavyquery.js
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 
 // eslint-disable-next-line no-undef
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,7 +13,7 @@ module.exports = {
   async execute(interaction) {
     // 1. Acknowledge immediately.
     // We set ephemeral to true HERE so the "thinking..." message is private.
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: [MessageFlags.Ephemeral] });
 
     try {
       // 2. Perform the heavy backend lifting
