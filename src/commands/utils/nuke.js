@@ -2,6 +2,7 @@ const {
   SlashCommandBuilder,
   PermissionFlagsBits,
   InteractionContextType,
+  MessageFlags
 } = require("discord.js");
 
 
@@ -14,11 +15,11 @@ module.exports = {
 
     // RBAC: Only users with the "Manage Messages" server permission can see this.
     // It prevents your server from having to check permissions manually.
-    .setDefaultMemberPermissions(PermissionFlagsBits.ManageMessages)
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
 
     // Context: This command makes no sense in a Direct Message.
     // We restrict it to ONLY be usable inside a Server (Guild).
-    .setContexts(InteractionContextType.Guild)
+    .setContexts(InteractionContextType.Guild)  // alternative to deprecated setDMPermission()
 
     // Safety: We keep this false for standard utility commands.
     .setNSFW(false)
@@ -31,7 +32,7 @@ module.exports = {
           .setDescription("Number of messages to delete (1-100)")
           .setRequired(true)
           .setMinValue(1)
-          .setMaxValue(100), // Frontend validation! User cannot type 101.
+          .setMaxValue(100),
     ),
 
   // 2. The Controller / Execution
@@ -41,9 +42,22 @@ module.exports = {
 
     const amount = interaction.options.getInteger("amount");
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
+
+      const botId = interaction.client.user.id;
+
+      const botMember = await interaction.member.guild.members.fetch(botId);
+
+      if (!botMember.permissions.has(PermissionFlagsBits.Administrator)) {
+        return await interaction.editReply({
+          content:
+            "❌ I cannot execute this command because I am missing the **Administrator** permission on this server!",
+          flags: [MessageFlags.Ephemeral],
+        });
+      }
+
       // standard discord.js method to bulk delete messages
       const deleted = await interaction.channel.bulkDelete(amount, true);
 
