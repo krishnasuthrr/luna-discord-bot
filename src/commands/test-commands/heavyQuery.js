@@ -8,7 +8,8 @@ module.exports = {
   guildOnly: true, // specific guild (dev)
   data: new SlashCommandBuilder()
     .setName("heavyquery")
-    .setDescription("Simulates a long-running database query."),
+    .setDescription("Simulates a long-running database query.")
+    .setIntegrationTypes(0),
 
   async execute(interaction) {
     // 1. Acknowledge immediately.

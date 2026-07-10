@@ -13,6 +13,8 @@ module.exports = {
     .setName("nuke")
     .setDescription("Deletes up to 100 messages in the current channel.")
 
+    .setIntegrationTypes(0) // 0 = guild install, 1 = user install
+
     // RBAC: Only users with the "Manage Messages" server permission can see this.
     // It prevents your server from having to check permissions manually.
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
@@ -21,8 +23,7 @@ module.exports = {
     // We restrict it to ONLY be usable inside a Server (Guild).
     .setContexts(InteractionContextType.Guild)  // alternative to deprecated setDMPermission()
 
-    // Safety: We keep this false for standard utility commands.
-    .setNSFW(false)
+    .setNSFW(false) // restricts to age restricted SFW channels/servers if true
 
     // We add an option to let the admin specify HOW MANY messages to delete
     .addIntegerOption(
